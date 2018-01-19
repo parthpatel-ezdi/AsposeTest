@@ -20,7 +20,7 @@ public class AsposeConfig {
 	public License license(){
 		License license = new com.aspose.words.License();
 		try {
-			license.setLicense("/home/local/EZDI/parth.m/Downloads/Aspose.Words.lic");
+			license.setLicense("E:\\var\\Aspose.Words.lic");
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
