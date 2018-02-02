@@ -21,6 +21,7 @@ import com.aspose.words.NodeType;
 import com.aspose.words.Paragraph;
 import com.aspose.words.SaveFormat;
 import com.aspose.words.Section;
+import com.aspose.words.TxtSaveOptions;
 import com.ezdi.aspose.Util;
 
 /**
@@ -39,16 +40,18 @@ public class ParagraphController {
 		Paragraph start = null;
 		Paragraph end = null;
 
-		NodeCollection paragraphs = doc.getChildNodes(NodeType.PARAGRAPH, true);
+		NodeCollection<Paragraph> paragraphs = doc.getChildNodes(NodeType.PARAGRAPH, true);
 
-		for (Paragraph para : (Iterable<Paragraph>) paragraphs) {
+		for (Paragraph para : paragraphs) {
 			if (para.toString(SaveFormat.TEXT).startsWith("==START==")) {
 				start = para;
 				start.getRuns().get(0).setText("BODY_CONTENT");
+				//System.out.println((start.getRuns().get(0).getText()));
+				//start.getRuns().get(0).setText("BODY_CONTENT");
 			}
 			if (para.toString(SaveFormat.TEXT).startsWith("==END==")) {
 				end = para;
-				start.getRuns().get(0).setText("");
+				//start.getRuns().get(0).setText("");
 			}
 		}
 		
@@ -59,10 +62,11 @@ public class ParagraphController {
 			ExtractContentBetweenParagraphs(paragraphs.indexOf(start), paragraphs.indexOf(end), doc);
 		}
 		
+		
 		if (start != null && end != null)
 		{
 		    DocumentBuilder builder = new DocumentBuilder(doc);
-		    builder.moveTo( start.getNextSibling());
+		    builder.moveTo(start);
 
 		    BookmarkStart bmStart = builder.startBookmark("bm");
 		    BookmarkEnd bmEnd = builder.endBookmark("bm");
@@ -71,7 +75,6 @@ public class ParagraphController {
 
 		    bmStart.getBookmark().setText("");
 		    bmStart.getBookmark().remove();
-		    
 		}
 		doc.save(dataDir + "/source1.docx", SaveFormat.DOCX);
 	}
@@ -84,6 +87,7 @@ public class ParagraphController {
 
 	        // Insert the content into a new separate document and save it to disk.
 	        Document dstDoc = generateDocument(doc, extractedNodes);
+
 	        dstDoc.save(Util.getDataDir() + "output.html",SaveFormat.HTML);
 	//ExEnd:ExtractContentBetweenParagraphs
 	        System.out.println("Content extracted between the paragraphs successfully.");
