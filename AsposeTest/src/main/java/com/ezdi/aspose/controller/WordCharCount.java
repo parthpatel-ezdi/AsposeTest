@@ -4,20 +4,15 @@
 package com.ezdi.aspose.controller;
 
 import com.aspose.words.*;
+import com.aspose.words.Paragraph;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.ezdi.aspose.Util;
 
-import java.nio.file.Files;
-import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.counting;
-import static java.util.stream.Collectors.groupingBy;
+import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 /**
  * @author parth.m
@@ -25,6 +20,107 @@ import static java.util.stream.Collectors.groupingBy;
 @RestController
 public class WordCharCount
 {
+
+    @GetMapping("docReplacer")
+    public void docReplacer(@RequestParam("filename") String filename) throws Exception
+    {
+        String paraStart = "==START==";
+        String paraEnd = "==END==";
+
+        String fileName = Util.getDataDir() + filename;
+
+        Document sourceDoc = new Document(fileName);
+        Document destinationDocument = new Document();
+
+        sourceDoc.getRange().replace(Pattern.compile(paraStart), new InsertDocumentAtReplaceHandler(sourceDoc, destinationDocument, paraEnd), false);
+
+        sourceDoc.getRange().replace(Pattern.compile(paraStart), "BODY_CONTENT");
+
+        sourceDoc.save(fileName.replace(filename, "New_" + filename));
+
+        destinationDocument.save(fileName.replace(filename, "New_file.html"), SaveFormat.HTML);
+    }
+
+    private static class InsertDocumentAtReplaceHandler implements IReplacingCallback
+    {
+        Document sourceDocument;
+        String paraEnd;
+        Document destinationDocument;
+
+
+        public InsertDocumentAtReplaceHandler(Document sourceDocument, Document destinationDocument, String paraEnd)
+        {
+            this.sourceDocument = sourceDocument;
+            this.destinationDocument = destinationDocument;
+            this.paraEnd = paraEnd;
+        }
+
+        public int replacing(ReplacingArgs e) throws Exception
+        {
+            // Insert a document after the paragraph, containing the match text.
+            com.aspose.words.Paragraph para = (com.aspose.words.Paragraph) e.getMatchNode().getParentNode();
+            insertDocument(para, sourceDocument, destinationDocument, paraEnd);
+
+            return ReplaceAction.SKIP;
+        }
+
+        public static Document insertDocument(Node insertAfterNode, Document srcDoc, Document destinationDocument, String paraEnd) throws Exception
+        {
+            // Make sure that the node is either a paragraph or table.
+            if ((insertAfterNode.getNodeType() != NodeType.PARAGRAPH) & (insertAfterNode.getNodeType() != NodeType.TABLE))
+                throw new IllegalArgumentException("The destination node should be either a paragraph or table.");
+
+            ArrayList<Node> extractedNodes = new ArrayList<Node>();
+
+            Node startNode = insertAfterNode.getNextSibling();
+            int chkFlag = 0;
+            while (startNode != null && chkFlag == 0)
+            {
+                if (startNode.getNodeType() == NodeType.PARAGRAPH)
+                {
+                    Paragraph para = (Paragraph) startNode;
+                    System.out.println(para.getText());
+                    if (para.getText().startsWith(paraEnd))
+                    {
+                        chkFlag = 1;
+                    }
+
+                    //To collect the node between ==START== and ==END==
+                    if (chkFlag == 0)
+                    {
+                        // Clone the current node and its children to obtain a copy.
+                        CompositeNode cloneNode = (CompositeNode) startNode.deepClone(true);
+                        extractedNodes.add(cloneNode);
+                    }
+                }
+
+
+                Node remove = startNode;
+                startNode = startNode.getNextSibling();
+                remove.remove();
+            }
+            return generateDocument(srcDoc, destinationDocument, extractedNodes);
+        }
+
+        public static Document generateDocument(Document srcDoc, Document dstDoc, ArrayList nodes) throws Exception
+        {
+
+            // Remove the first paragraph from the empty document.
+            dstDoc.getFirstSection().getBody().removeAllChildren();
+
+            // Import each node from the list into the new document. Keep the original formatting of the node.
+            NodeImporter importer = new NodeImporter(srcDoc, dstDoc, ImportFormatMode.KEEP_SOURCE_FORMATTING);
+
+            for (Node node : (Iterable<Node>) nodes)
+            {
+                Node importNode = importer.importNode(node, true);
+                dstDoc.getFirstSection().getBody().appendChild(importNode);
+            }
+
+            // Return the generated document.
+            return dstDoc;
+        }
+    }
 
     /**
      * There are three types of headers/footers in a Word document
