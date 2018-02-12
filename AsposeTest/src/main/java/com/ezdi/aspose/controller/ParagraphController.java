@@ -46,19 +46,15 @@ public class ParagraphController {
 			if (para.toString(SaveFormat.TEXT).startsWith("==START==")) {
 				start = para;
 				start.getRuns().get(0).setText("BODY_CONTENT");
-				//System.out.println((start.getRuns().get(0).getText()));
-				//start.getRuns().get(0).setText("BODY_CONTENT");
 			}
 			if (para.toString(SaveFormat.TEXT).startsWith("==END==")) {
 				end = para;
-				//start.getRuns().get(0).setText("");
 			}
 		}
 		
 		if (start != null && end != null)
 		{
-			System.out.println(paragraphs.indexOf(start));
-			System.out.println(paragraphs.indexOf(end));
+			
 			ExtractContentBetweenParagraphs(paragraphs.indexOf(start), paragraphs.indexOf(end), doc);
 		}
 		
@@ -82,14 +78,10 @@ public class ParagraphController {
 	private void ExtractContentBetweenParagraphs(int start, int end, Document doc) throws Exception{
 		 Paragraph startPara = (Paragraph) doc.getFirstSection().getChild(NodeType.PARAGRAPH, start, true);
 	        Paragraph endPara = (Paragraph) doc.getFirstSection().getChild(NodeType.PARAGRAPH, end - 1, true);
-	        // Extract the content between these nodes in the document. Include these markers in the extraction.
 	        ArrayList<Node> extractedNodes = extractContent(startPara, endPara, true);
-
-	        // Insert the content into a new separate document and save it to disk.
 	        Document dstDoc = generateDocument(doc, extractedNodes);
 
 	        dstDoc.save(Util.getDataDir() + "output.html",SaveFormat.HTML);
-	//ExEnd:ExtractContentBetweenParagraphs
 	        System.out.println("Content extracted between the paragraphs successfully.");
 	}
 	

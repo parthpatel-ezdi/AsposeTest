@@ -4,7 +4,7 @@
 package com.ezdi.aspose.controller;
 
 import com.aspose.words.*;
-import com.aspose.words.Paragraph;
+
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.ezdi.aspose.Util;
 
 import java.util.ArrayList;
-import java.util.regex.Pattern;
 
 /**
  * @author parth.m
@@ -31,10 +30,15 @@ public class WordCharCount
 
         Document sourceDoc = new Document(fileName);
         Document destinationDocument = new Document();
+        
+		FindReplaceOptions options = new FindReplaceOptions();
+		options.setReplacingCallback(new InsertDocumentAtReplaceHandler(sourceDoc, destinationDocument, paraEnd));
 
-        sourceDoc.getRange().replace(Pattern.compile(paraStart), new InsertDocumentAtReplaceHandler(sourceDoc, destinationDocument, paraEnd), false);
+        //sourceDoc.getRange().replace(Pattern.compile(paraStart), new InsertDocumentAtReplaceHandler(sourceDoc, destinationDocument, paraEnd), false);
+        
+        sourceDoc.getRange().replace(paraStart, "", options);
 
-        sourceDoc.getRange().replace(Pattern.compile(paraStart), "BODY_CONTENT");
+        sourceDoc.getRange().replace(paraStart, "BODY_CONTENT", new FindReplaceOptions(FindReplaceDirection.FORWARD));
 
         sourceDoc.save(fileName.replace(filename, "New_" + filename));
 
@@ -57,8 +61,12 @@ public class WordCharCount
 
         public int replacing(ReplacingArgs e) throws Exception
         {
+
+        	Node para = e.getMatchNode();
+            while (para.getParentNode().getNodeType() != NodeType.BODY)
+            	para = para.getParentNode();
             // Insert a document after the paragraph, containing the match text.
-            com.aspose.words.Paragraph para = (com.aspose.words.Paragraph) e.getMatchNode().getParentNode();
+
             insertDocument(para, sourceDocument, destinationDocument, paraEnd);
 
             return ReplaceAction.SKIP;
