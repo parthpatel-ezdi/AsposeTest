@@ -12,7 +12,7 @@ import java.io.File;
 public class Util {
 	
 	public static String getDataDir() {
-		File dir = new File("/home/local/EZDI/parth.m/Desktop/AsposeTest/");
+		File dir = new File("/home/parthp/Desktop/AsposeTest/");
 
             if (dir.isDirectory() == false)
                 dir.mkdir();
