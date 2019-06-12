@@ -4,7 +4,7 @@
 
 	<groupId>com.ezdi</groupId>
 	<artifactId>AsposeTest</artifactId>
-	<version>0.0.3-SNAPSHOT</version>
+	<version>0.0.3</version>
 	<packaging>jar</packaging>
 
 	<name>AsposeTest</name>
@@ -19,7 +19,7 @@
 
 	<scm>
 		<connection>scm:git:https://github.com/parthpatel-ezdi/AsposeTest.git</connection>
-		<tag>HEAD</tag>
+		<tag>AsposeTest-0.0.3</tag>
 	</scm>
 
 	<properties>
